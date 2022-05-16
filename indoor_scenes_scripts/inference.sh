@@ -1,0 +1,1 @@
+python -m indoor_scenes.lib.inference --arch vit_b16 --resolution 224
