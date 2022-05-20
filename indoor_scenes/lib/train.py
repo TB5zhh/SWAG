@@ -9,6 +9,8 @@ from IPython import embed
 
 
 def train(args):
+    num_classes = len(USED_ROOM_TYPES) if args.limited else len(ROOM_TYPES)
+
     """
     Datasets and transforms
     """
@@ -24,26 +26,28 @@ def train(args):
     ])
     train_dataset = MIT67Dataset('/home/tb5zhh/MIT67',
                                  transforms=transform,
+                                 limited=args.limited,
                                  split="train")
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=args.batch_size,
-        shuffle=args.train,
+        batch_size=args.train_batch_size,
+        shuffle=True,
         num_workers=args.num_worker,
     )
     validate_dataset = MIT67Dataset('/home/tb5zhh/MIT67',
                                     transforms=transform,
+                                    limited=args.limited,
                                     split="eval")
     validate_dataloader = torch.utils.data.DataLoader(
         validate_dataset,
-        batch_size=args.batch_size,
-        shuffle=args.train,
+        batch_size=args.val_batch_size,
+        shuffle=False,
         num_workers=args.num_worker,
     )
     """
     Model and criterion
     """
-    network = get_network(args.arch).cuda()
+    network = get_network(args.arch, num_classes).cuda()
 
     criterion = torch.nn.CrossEntropyLoss()
     """
@@ -74,32 +78,32 @@ def train(args):
                 "optimizer": optim.state_dict(),
                 # "scheduler": sched.state_dict(),
                 "epoch": epoch_idx,
-            }, f'epoch#{epoch_idx}.pth')
+            }, f'{args.exp_name}-epoch#{epoch_idx}.pth')
         """
         Validation
         """
         network.eval()
         correct = 0
         total = 0
-        TP = [0 for _ in range(20)]
-        P = [0 for _ in range(20)]
-        PP = [0 for _ in range(20)]
+        TP = [0 for _ in range(num_classes)]
+        P = [0 for _ in range(num_classes)]
+        PP = [0 for _ in range(num_classes)]
         for step_idx, (img, label, _) in enumerate(validate_dataloader):
             img = img.cuda()
             out = network(img)
             predicted = torch.argmax(out, dim=1)
-            for i in range(20):
+            for i in range(num_classes):
                 TP[i] += torch.bitwise_and(predicted.cpu() == i, label == i).sum()
                 P[i] += (label == i).sum()
                 PP[i] += (predicted.cpu() == i).sum()
             total += len(predicted)
             correct += (predicted.cpu() == label).sum().item()
-        for i in range(20):
+        for i in range(num_classes):
             print(f'Precision cls#{i:2d}: {TP[i] / PP[i] * 100:3.2f}, Recall cls#{i:2d}: {TP[i] / P[i] * 100:3.2f}')
         print(f"Validate acc: {correct / total * 100:3.2f}")
 
 
 if __name__ == '__main__':
-    args = parse_args()
+    args, _ = parse_args()
     args.train = True
     train(args)

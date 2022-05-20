@@ -26,7 +26,7 @@ def inference(file_list, ckpt_path, args):
     """
     Model and checkpoint loading
     """
-    network = get_network(args.arch).cuda()
+    network = get_network(args.arch, len(USED_ROOM_TYPES)).cuda()
 
     ckpt = torch.load(ckpt_path)
     network.load_state_dict(ckpt['model_state_dict'])

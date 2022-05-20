@@ -26,10 +26,13 @@ USED_ROOM_TYPES = [
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch-size', type=int, default=4, help="@todo")
+    parser.add_argument('--val-batch-size', type=int, default=4, help="@todo")
+    parser.add_argument('--train-batch-size', type=int, default=4, help="@todo")
     parser.add_argument('--train', action='store_true', default=True, help="@todo")
+    parser.add_argument('--limited', action='store_true', help="@todo")
     parser.add_argument('--num-worker', type=int, default=1, help="@todo")
     parser.add_argument('--arch', type=str, default='regnety_128gf', help="@todo")
+    parser.add_argument('--exp-name', type=str, default='unlimited', help="@todo")
     parser.add_argument('--epochs', type=int, default=100, help="@todo")
     parser.add_argument('--resolution', type=int, default=384, help="@todo")
     parser.add_argument('--lr', type=float, default=0.001, help="@todo")
